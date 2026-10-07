@@ -9,12 +9,16 @@ jobs:
       - name: Comparar DEV_TOKEN con LOCAL_DEV_TOKEN
         shell: powershell
         run: |
-          Write-Host "Iniciando comprobacion..."
-          if ($env:DEV_SECRET -eq $env:LOCAL_DEV_TOKEN) {
+          $localVal = [System.Environment]::GetEnvironmentVariable("LOCAL_DEV_TOKEN", "Machine")
+          if (-not $localVal) {
+            $localVal = $env:LOCAL_DEV_TOKEN
+          }
+          
+          if ($env:DEV_SECRET -and ($env:DEV_SECRET.Trim() -eq $localVal.Trim())) {
             Write-Host "COINCIDEN: DEV_TOKEN y LOCAL_DEV_TOKEN son iguales"
             exit 0
           } else {
-            Write-Error "ERROR: Los tokens no coinciden"
+            Write-Host "No coinciden o falta valor."
             exit 1
           }
         env:
