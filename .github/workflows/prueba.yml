@@ -1,0 +1,21 @@
+name: Comprobacion Tokens
+
+on: [push]
+
+jobs:
+  verificar-token:
+    runs-on: self-hosted
+    steps:
+      - name: Comparar DEV_TOKEN con LOCAL_DEV_TOKEN
+        shell: powershell
+        run: |
+          Write-Host "Iniciando comprobacion..."
+          if ($env:DEV_SECRET -eq $env:LOCAL_DEV_TOKEN) {
+            Write-Host "COINCIDEN: DEV_TOKEN y LOCAL_DEV_TOKEN son iguales"
+            exit 0
+          } else {
+            Write-Error "ERROR: Los tokens no coinciden"
+            exit 1
+          }
+        env:
+          DEV_SECRET: ${{ secrets.DEV_TOKEN }}
