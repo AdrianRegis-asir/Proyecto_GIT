@@ -6,19 +6,25 @@ jobs:
   verificar-token:
     runs-on: self-hosted
     steps:
-      - name: Comparar DEV_TOKEN con LOCAL_DEV_TOKEN
+      - name: Diagnosticar y Comparar
         shell: powershell
         run: |
-          $localVal = [System.Environment]::GetEnvironmentVariable("LOCAL_DEV_TOKEN", "Machine")
-          if (-not $localVal) {
-            $localVal = $env:LOCAL_DEV_TOKEN
-          }
-          
-          if ($env:DEV_SECRET -and ($env:DEV_SECRET.Trim() -eq $localVal.Trim())) {
-            Write-Host "COINCIDEN: DEV_TOKEN y LOCAL_DEV_TOKEN son iguales"
+          # Lectura forzada desde registro de máquina y entorno
+          $sysVal = [System.Environment]::GetEnvironmentVariable("LOCAL_DEV_TOKEN", [System.EnvironmentVariableTarget]::Machine)
+          $envVal = $env:LOCAL_DEV_TOKEN
+          $secVal = $env:DEV_SECRET
+
+          Write-Host "Longitud Machine LOCAL_DEV_TOKEN: $(($sysVal).Length)"
+          Write-Host "Longitud env:LOCAL_DEV_TOKEN: $(($envVal).Length)"
+          Write-Host "Longitud Secret DEV_SECRET: $(($secVal).Length)"
+
+          $localFinal = if ($sysVal) { $sysVal } else { $envVal }
+
+          if ($localFinal -and $secVal -and ($localFinal.Trim() -eq $secVal.Trim())) {
+            Write-Host "COINCIDEN: Los tokens son exactamente iguales."
             exit 0
           } else {
-            Write-Host "No coinciden o falta valor."
+            Write-Host "ERROR: No coinciden."
             exit 1
           }
         env:
